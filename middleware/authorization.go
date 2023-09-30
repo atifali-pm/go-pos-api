@@ -1,9 +1,11 @@
 package middleware
 
 import (
+	"errors"
 	"os"
 	"strings"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt"
 )
 
@@ -22,5 +24,21 @@ func AuthenticateToken(tokenString string) error {
 		return err
 	}
 
+	return nil
+}
+
+var ErrUnauthorized = errors.New("Unauthorized")
+
+// AuthenticateToken checks the Authorization token
+func AuthorizeToken(c *fiber.Ctx) error {
+	headerToken := c.Get("Authorization")
+
+	if headerToken == "" {
+		return ErrUnauthorized
+	}
+
+	if err := AuthenticateToken(SplitToken(headerToken)); err != nil {
+		return ErrUnauthorized
+	}
 	return nil
 }

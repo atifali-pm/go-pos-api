@@ -13,8 +13,11 @@ func Setup(app *fiber.App) {
 	app.Get("/cashiers", controllers.CashierList)
 	app.Get("/cashiers/:cashier_id", controllers.GetCashierDetails)
 	app.Post("/cashiers", controllers.CreateCashier)
+	app.Patch("/cashiers/:cashier_id", controllers.UpdateCashier)
+	app.Delete("/cashiers/:cashier_id", controllers.DeleteCashier)
 
 	app.Post("/categories", controllers.CreateCategory)
 	app.Get("/categories/:category_id", controllers.GetCategoryDetails)
+	app.Patch("/categories/:category_id", controllers.UpdateCategory)
 
 }

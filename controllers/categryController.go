@@ -79,3 +79,55 @@ func GetCategoryDetails(c *fiber.Ctx) error {
 		"data":    categoryData,
 	})
 }
+
+func UpdateCategory(c *fiber.Ctx) error {
+	categoryId := c.Params("category_id")
+
+	headerToken := c.Get("Authorization")
+
+	if headerToken == "" {
+		return c.Status(401).JSON(fiber.Map{
+			"success": false,
+			"message": "Unauthorized",
+			"error":   map[string]interface{}{},
+		})
+	}
+
+	if err := middleware.AuthenticateToken(middleware.SplitToken(headerToken)); err != nil {
+		return c.Status(401).JSON(fiber.Map{
+			"success": false,
+			"message": "Unauthorized",
+			"error":   map[string]interface{}{},
+		})
+	}
+
+	var category models.Category
+	db.DB.Find(&category, "id=?", categoryId)
+
+	if category.Name == "" {
+		return c.Status(404).JSON(fiber.Map{
+			"success": false,
+			"message": "Category not found against this Id",
+		})
+	}
+
+	var updateCashierData models.Category
+	c.BodyParser(&updateCashierData)
+
+	if updateCashierData.Name == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"success": false,
+			"message": "Category name is required",
+			"error":   map[string]interface{}{},
+		})
+	}
+
+	category.Name = updateCashierData.Name
+	db.DB.Save(&category)
+	return c.Status(200).JSON(fiber.Map{
+		"success": true,
+		"message": "success",
+		"data":    category,
+	})
+
+}
