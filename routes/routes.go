@@ -19,5 +19,7 @@ func Setup(app *fiber.App) {
 	app.Post("/categories", controllers.CreateCategory)
 	app.Get("/categories/:category_id", controllers.GetCategoryDetails)
 	app.Patch("/categories/:category_id", controllers.UpdateCategory)
+	app.Delete("/categories/:category_id", controllers.DeleteCategory)
+	app.Get("/categories", controllers.GetCategoriesList)
 
 }
