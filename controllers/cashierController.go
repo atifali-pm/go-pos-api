@@ -38,6 +38,31 @@ func CreateCashier(c *fiber.Ctx) error {
 	})
 }
 
+func GetCashierDetails(c *fiber.Ctx) error {
+	cashierId := c.Params("cashier_id")
+
+	var cashier models.Cashier
+	db.DB.Select("id, name").Where("id=?", cashierId).First(&cashier)
+
+	cashierData := make(map[string]interface{})
+	cashierData["id"] = cashier.Id
+	cashierData["name"] = cashier.Name
+
+	if cashier.Id == 0 {
+		return c.Status(404).JSON(fiber.Map{
+			"success": false,
+			"message": "Cashier not found!",
+			"error":   map[string]interface{}{},
+		})
+	}
+
+	return c.Status(200).JSON(fiber.Map{
+		"success": true,
+		"message": "success",
+		"data":    cashierData,
+	})
+}
+
 type Cashiers struct {
 	Id   uint   `json:"cashierId"`
 	Name string `json:"name"`
