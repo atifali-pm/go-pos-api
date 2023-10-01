@@ -22,4 +22,7 @@ func Setup(app *fiber.App) {
 	app.Delete("/categories/:category_id", controllers.DeleteCategory)
 	app.Get("/categories", controllers.GetCategoriesList)
 
+	app.Post("/products", controllers.CreateProduct)
+	app.Get("/products/:product_id", controllers.GetProductDetails)
+
 }
