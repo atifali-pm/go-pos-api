@@ -28,4 +28,6 @@ func Setup(app *fiber.App) {
 	app.Get("/products", controllers.GetProductsList)
 	app.Delete("/products/:product_id", controllers.DeleteProduct)
 
+	app.Post("/payments", controllers.CreatePayment)
+
 }
