@@ -13,3 +13,13 @@ type Discount struct {
 	CreatedAt       time.Time `json:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at"`
 }
+
+type DiscountResult struct {
+	Id              int    `json:"id"`
+	Qty             int    `json:"qty"`
+	Type            string `json:"type"`
+	Result          int    `json:"result"`
+	ExpiredAt       int    `json:"expired_at"`
+	ExpiredAtFormat string `json:"expired_at_format"`
+	StringFormat    string `json:"string_format"`
+}

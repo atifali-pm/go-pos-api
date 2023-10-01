@@ -13,6 +13,11 @@ type Category struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+type CategoryResult struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+}
+
 func (c *Category) BeforeSave(tx *gorm.DB) (err error) {
 	// This hook is called before the model is saved
 	// You can perform any migration-related tasks here

@@ -53,6 +53,13 @@ func CreateProduct(c *fiber.Ctx) error {
 		log.Fatalf("Product error in post request %v", err)
 	}
 
+	if data.CategoryId == 0 || data.Name == "" || data.Image == "" || data.Stock <= 0 || data.Price <= 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": true,
+			"message": "Fields are required",
+		})
+	}
+
 	// var p []models.Product
 	// db.DB.Find(&p)
 
@@ -126,7 +133,7 @@ func GetProductDetails(c *fiber.Ctx) error {
 	db.DB.Where("id = ?", product.DiscountId).Find(&discount)
 
 	type ProductDiscount struct {
-		Id       int      `json:"id" gorm:"type:INT(10) UNSIGNED NOT NULL AUTO_INCREMENT;primaryKey"`
+		Id       int      `json:"id"`
 		Sku      string   `json:"sku"`
 		Name     string   `json:"name"`
 		Stock    int      `json:"stock"`
@@ -160,4 +167,165 @@ func GetProductDetails(c *fiber.Ctx) error {
 		"data":    productResponse,
 	})
 
+}
+
+func UpdateProduct(c *fiber.Ctx) error {
+
+	// Token authenticate
+	if err := middleware.AuthorizeToken(c); err != nil {
+		return c.Status(403).JSON(fiber.Map{
+			"success": false,
+			"message": "Unauthorized",
+			"status":  fiber.StatusForbidden,
+		})
+	}
+	// Token authenticate
+
+	productId := c.Params("product_id")
+	var product models.Product
+
+	db.DB.Find(&product, "id = ?", productId)
+
+	if product.Name == "" {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"success": true,
+			"message": "Product not found",
+		})
+	}
+
+	// fmt.Println("--------------------------------------->")
+	// fmt.Println("------------Product ----------->", product)
+	// fmt.Println("--------------------------------------->")
+
+	var updateProductData models.Product
+	c.BodyParser(&updateProductData)
+
+	if updateProductData.Name == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"success": false,
+			"message": "Product name is required",
+			"error":   map[string]interface{}{},
+		})
+	}
+
+	if updateProductData.Name != "" {
+		product.Name = updateProductData.Name
+	}
+	if updateProductData.Price > 0 {
+		product.Price = updateProductData.Price
+	}
+	if updateProductData.CategoryId > 0 {
+		product.CategoryId = updateProductData.CategoryId
+	}
+	if updateProductData.Image != "" {
+		product.Image = updateProductData.Image
+	}
+	if updateProductData.Stock > 0 {
+		product.Stock = updateProductData.Stock
+	}
+
+	db.DB.Save(&product)
+
+	return c.Status(200).JSON(fiber.Map{
+		"success":  true,
+		"messsage": "success",
+		"data":     product,
+	})
+
+}
+
+func GetProductsList(c *fiber.Ctx) error {
+	// Token authenticate
+	if err := middleware.AuthorizeToken(c); err != nil {
+		return c.Status(403).JSON(fiber.Map{
+			"success": false,
+			"message": "Unauthorized",
+			"status":  fiber.StatusForbidden,
+		})
+	}
+	// Token authenticate
+
+	limitParam := c.Query("limit")
+
+	// Set default limit to 10 if not provided or invalid
+	limit := 10
+	if parsedLimit, err := strconv.Atoi(limitParam); err == nil && parsedLimit > 0 {
+		limit = parsedLimit
+	}
+
+	skip, _ := strconv.Atoi(c.Query("skip"))
+
+	var products []models.Product
+
+	productsRes := make([]*models.ProductResult, 0)
+
+	var count int64
+
+	db.DB.Limit(limit).Offset(skip).Find(&products).Count(&count)
+
+	var category models.CategoryResult
+	var discountResult models.DiscountResult
+
+	for i := 0; i < len(products); i++ {
+		db.DB.Table("categories").Select("id, name").Where("id = ?", products[i].CategoryId).Find(&category)
+		db.DB.Table("discounts").Select("*").Where("id = ?", products[i].DiscountId).Limit(limit).Offset(skip).Find(&discountResult).Count(&count)
+
+		count = int64(len(products))
+
+		productsRes = append(productsRes, &models.ProductResult{
+			Id:       products[i].Id,
+			Sku:      products[i].Sku,
+			Name:     products[i].Name,
+			Stock:    products[i].Stock,
+			Price:    products[i].Price,
+			Image:    products[i].Image,
+			Category: category,
+			Discount: discountResult,
+		})
+
+	}
+
+	meta := map[string]interface{}{
+		"total": count,
+		"limit": limit,
+		"skip":  skip,
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"success": true,
+		"message": "success",
+		"data":    productsRes,
+		"meta":    meta,
+	})
+
+}
+
+func DeleteProduct(c *fiber.Ctx) error {
+	// Token authenticate
+	if err := middleware.AuthorizeToken(c); err != nil {
+		return c.Status(403).JSON(fiber.Map{
+			"success": false,
+			"message": "Unauthorized",
+			"status":  fiber.StatusForbidden,
+		})
+	}
+	// Token authenticate
+
+	productId := c.Params("product_id")
+	var product models.Product
+
+	db.DB.First(&product, productId)
+	if product.Id <= 0 {
+		return c.Status(404).JSON(fiber.Map{
+			"success": false,
+			"messgae": "product not found!",
+		})
+	}
+
+	db.DB.Delete(&product)
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"success": true,
+		"message": "product is removed!",
+	})
 }

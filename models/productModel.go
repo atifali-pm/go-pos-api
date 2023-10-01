@@ -16,3 +16,14 @@ type Product struct {
 	CategoryId       int       `json:"category_id"`
 	DiscountId       int       `json:"discount_id"`
 }
+
+type ProductResult struct {
+	Id       int            `json:"id"`
+	Sku      string         `json:"sku"`
+	Name     string         `json:"name"`
+	Stock    int            `json:"stock"`
+	Price    int            `json:"price"`
+	Image    string         `json:"image"`
+	Category CategoryResult `json:"category"`
+	Discount DiscountResult `json:"discount"`
+}
