@@ -39,4 +39,6 @@ func Setup(app *fiber.App) {
 	app.Get("/orders/check-order/:order_id", controllers.CheckOrder)
 	app.Get("/orders/:order_id", controllers.OrderDetail)
 	app.Get("/orders", controllers.OrderList)
+	app.Get("/orders/:order_id/download", controllers.DownloadOrder)
+
 }

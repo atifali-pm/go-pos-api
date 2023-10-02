@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type Cashier struct {
 	Id        uint      `json:"id" gorm:"type:INT(10) UNSIGNED NOT NULL AUTO_INCREMENT;primaryKey"`
@@ -11,7 +14,18 @@ type Cashier struct {
 }
 
 type CashierResponse struct {
-	Id       uint   `json:"id"`
-	Name     string `json:"name"`
-	Passcode string `json:"passcode"`
+	Cashier
+}
+
+func (c CashierResponse) MarshalJSON() ([]byte, error) {
+	type Alias CashierResponse
+	return json.Marshal(&struct {
+		CreatedAt string `json:"created_at,omitempty"`
+		UpdatedAt string `json:"updated_at,omitempty"`
+		*Alias
+	}{
+		CreatedAt: c.CreatedAt.Format(time.RFC3339),
+		UpdatedAt: c.UpdatedAt.Format(time.RFC3339),
+		Alias:     (*Alias)(&c),
+	})
 }
